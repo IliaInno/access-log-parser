@@ -7,6 +7,8 @@ public class Main {
         int totalLinesCount = 0;
         int yandexBotCount = 0;
         int googleBotCount = 0;
+        long totalTraffic = 0;
+        Statistics statistics = new Statistics();
 
 
         while (true) {
@@ -33,6 +35,8 @@ public class Main {
                     System.out.println("Указанный файл не существует или путь является путём к папке");
                 }
 
+                String[] allLineFragments;
+                String[] lineBotsFragments;
                 try {
                     FileReader fileReader = new FileReader(path);
                     BufferedReader reader = new BufferedReader(fileReader);
@@ -45,8 +49,8 @@ public class Main {
                         }
                         totalLinesCount++;
 
-                        String[] lineFragments = (line.split("\""));
-                        String userAgentInfo = lineFragments[lineFragments.length - 1];
+                        lineBotsFragments = (line.split("\""));
+                        String userAgentInfo = lineBotsFragments[lineBotsFragments.length - 1];
                         String firstBrackets = userAgentInfo.replaceAll(".*\\(|\\).*", "");
                         String[] parts = firstBrackets.split(";");
                         if (parts.length >= 2) {
@@ -59,10 +63,17 @@ public class Main {
                                 googleBotCount++;
                             }
                         }
+
+                        allLineFragments = line.split(" ");
+                        LogEntry logEntry = new LogEntry(allLineFragments);
+                        totalTraffic += logEntry.getDataSize();
+                        statistics.addEntry(logEntry);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
+
+
                 System.out.println("Общее количество строк в файле: " + totalLinesCount);
                 System.out.println("------------");
                 System.out.println("Общее количество строк с YandexBot: " + yandexBotCount);
@@ -72,6 +83,12 @@ public class Main {
                 System.out.println("Общее количество строк c GoogleBot: " + googleBotCount);
                 System.out.println("Доля запросов от GoogleBot относительно общего числа сделанных запросов: " +
                         String.format("%.2f", (double) googleBotCount / totalLinesCount * 100) + "%");
+                System.out.println("--------");
+                System.out.println("Минимальное время в файле: " + statistics.getMinTime());
+                System.out.println("Максимальное время в файле: " + statistics.getMaxTime());
+                System.out.println("Общее количество траффика: " + totalTraffic);
+                System.out.println("Разница между максимальным и минимальным временем в часах: " + (statistics.getMaxTime().getHour() - statistics.getMinTime().getHour()));
+                System.out.println("Среднее количество траффика за час " + statistics.getTrafficRate(totalTraffic));
             }
         }
     }
